@@ -121,7 +121,10 @@ export function targetMessage(rawText, sourceId) {
         });
 
         targets.push(target);
+
+        targets.push(target.save());
     }
+
 
     return targets;
 }
