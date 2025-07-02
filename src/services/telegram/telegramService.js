@@ -46,7 +46,7 @@ export async function startTelegramService(broadcast) {
 
         console.log("🔴 Нове повідомлення:", rawText);
 
-        const alertParsed = alertMessage(rawText, sourceId);
+        const alertParsed = await alertMessage(rawText, sourceId);
         const targetParsed = targetMessage(rawText, sourceId);
 
         console.log("Результат парсингу цілей:", targetParsed);
