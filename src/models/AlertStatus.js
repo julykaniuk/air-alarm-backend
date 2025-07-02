@@ -1,20 +1,50 @@
 export class AlertStatus {
     constructor() {
-      this.airAlert = new Set();
-      this.airAlertOff = new Set();
+        this.activeAlerts = {
+            "повітряна": new Set(),
+            "хімічна": new Set(),
+            "радіаційна": new Set(),
+        };
+        this.clearedAlerts = {
+            "повітряна": new Set(),
+            "хімічна": new Set(),
+            "радіаційна": new Set(),
+        };
     }
-  
+
+    addAlert(location, type) {
+        if (!this.activeAlerts[type]) this.activeAlerts[type] = new Set();
+        this.activeAlerts[type].add(location);
+
+        if (!this.clearedAlerts[type]) this.clearedAlerts[type] = new Set();
+        this.clearedAlerts[type].delete(location);
+    }
+
+    clearAlert(location, type) {
+        if (!this.clearedAlerts[type]) this.clearedAlerts[type] = new Set();
+        this.clearedAlerts[type].add(location);
+
+        if (!this.activeAlerts[type]) this.activeAlerts[type] = new Set();
+        this.activeAlerts[type].delete(location);
+    }
+
     toObject() {
-      return {
-        airAlert: Array.from(this.airAlert),
-        airAlertOff: Array.from(this.airAlertOff),
-      };
+        const serialize = obj => {
+            const result = {};
+            for (const key in obj) {
+                result[key] = Array.from(obj[key]);
+            }
+            return result;
+        };
+
+        return {
+            activeAlerts: serialize(this.activeAlerts),
+            clearedAlerts: serialize(this.clearedAlerts),
+        };
     }
-  
+
     clear() {
-      this.airAlert.clear();
-      this.airAlertOff.clear();
+        for (const type in this.activeAlerts) this.activeAlerts[type].clear();
+        for (const type in this.clearedAlerts) this.clearedAlerts[type].clear();
     }
-  }
-  
-  
+}
