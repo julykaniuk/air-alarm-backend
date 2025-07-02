@@ -4,6 +4,7 @@ import app from './app.js';
 import { initWebSocketServer } from './ws/websocket.js';
 
 import { broadcast } from './ws/websocket.js';
+import {startTelegramService} from "./services/telegram/telegramService.js";
 dotenv.config();
 
 const PORT = process.env.PORT || 3000;

@@ -1,7 +1,9 @@
 import { TelegramClient } from "telegram/index.js";
 import { StringSession } from "telegram/sessions/index.js";
 import { NewMessage } from "telegram/events/index.js";
-import {parseMessage } from "../parser/AlertParser.js";
+import { alertMessage } from "../parser/AlertParser.js";
+import { targetMessage } from "../parser/TargetParser.js";
+
 import fs from "fs/promises";
 import input from "input";
 
@@ -36,32 +38,66 @@ export async function startTelegramService(broadcast) {
   
     await fs.writeFile(sessionFile, client.session.save());
     console.log("Сесію збережено у файл session.txt");
-  
-    client.addEventHandler(
+
+  client.addEventHandler(
       async (event) => {
         const rawText = event.message.message;
         const sourceId = event.chat?.username || 'unknown';
-  
+
         console.log("🔴 Нове повідомлення:", rawText);
-  
-        const parsed  = parseMessage(rawText, sourceId);
-  
-        if (parsed && Array.isArray(parsed)) {
-          parsed.forEach(alert => {
+
+        const alertParsed = alertMessage(rawText, sourceId);
+        const targetParsed = targetMessage(rawText, sourceId);
+
+        console.log("Результат парсингу цілей:", targetParsed);
+        console.log("Результат парсингу тривог:", alertParsed);
+
+        if (targetParsed && Array.isArray(targetParsed) && targetParsed.length > 0) {
+          targetParsed.forEach(target => {
+            const messageToBroadcast = {
+              type: target.type,
+              payload: {
+                id: target.id,
+                sourceId: target.sourceId,
+                type: target.type,
+                direction: target.direction,
+                coordinates: target.coordinates,
+                city: target.city,
+                district: target.district,
+                territory: target.territory,
+                region: target.region,
+                locationName: target.locationName,
+                detectedAt: target.detectedAt,
+                rawText: target.rawText,
+                color: target.color,
+                sound: target.sound,
+                code: target.code,
+              },
+            };
+
+            console.log("Broadcast повідомлення:", JSON.stringify(messageToBroadcast, null, 2));
+
+            broadcast(messageToBroadcast);
+          });
+        } else {
+          console.log("Цілі не знайдено або формат не той");
+        }
+
+        if (alertParsed && Array.isArray(alertParsed) && alertParsed.length > 0) {
+          alertParsed.forEach(alert => {
             const messageToBroadcast = {
               type: alert.type,
               payload: alert.payload,
             };
-        
+
             console.log("Broadcast повідомлення:", JSON.stringify(messageToBroadcast, null, 2));
-        
+
             broadcast(messageToBroadcast);
           });
         } else {
-          console.log("Повідомлення не розпізнано");
+          console.log("Тривоги не розпізнано");
         }
-        
       },
-      new NewMessage({ chats: ["@test_backend_test"] })
+  new NewMessage({ chats: ["@test_backend_test"] })
     );
   }
