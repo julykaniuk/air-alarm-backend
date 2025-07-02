@@ -3,7 +3,6 @@ import { StringSession } from "telegram/sessions/index.js";
 import { NewMessage } from "telegram/events/index.js";
 import { alertMessage } from "../parser/AlertParser.js";
 import { targetMessage } from "../parser/TargetParser.js";
-
 import fs from "fs/promises";
 import input from "input";
 
@@ -42,7 +41,8 @@ export async function startTelegramService(broadcast) {
   client.addEventHandler(
       async (event) => {
         const rawText = event.message.message;
-        const sourceId = event.chat?.username || 'unknown';
+        const sender = await client.getEntity(event.message.senderId);
+        const sourceId = sender.username || sender.id.toString() || 'unknown';
 
         console.log("🔴 Нове повідомлення:", rawText);
 
@@ -98,6 +98,6 @@ export async function startTelegramService(broadcast) {
           console.log("Тривоги не розпізнано");
         }
       },
-  new NewMessage({ chats: ["@test_backend_test"] })
+      new NewMessage({ chats: ["@trevoga_kharkov", "@test_backend_test"] })
     );
   }
