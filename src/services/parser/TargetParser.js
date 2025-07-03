@@ -27,8 +27,8 @@ function parseLocation(locationLine) {
     const bracketMatch = locationLine.match(/\(([^)]+)\)/);
     if (bracketMatch) {
         region = bracketMatch[1].trim();
-        if (/обл\.?|область/i.test(region)) {
-            region = region.replace(/обл\.?$/i, "Область");
+        if (/обл.\.?|область/i.test(region)) {
+            region = region.replace(/обл.\.?$/i, "Область");
             line = line.replace(/\([^)]+\)/, '').trim();
             words = line.split(/\s+/);
         } else {
@@ -47,6 +47,10 @@ function parseLocation(locationLine) {
         const parts = region.split(/\s+/);
         words = words.filter(w => !parts.includes(w));
     }
+
+    const extraKeywordsToRemove = ["обл.", "область", "район", "територіальна", "громада"];
+    words = words.filter(w => !extraKeywordsToRemove.includes(w.toLowerCase()));
+
 
     district = findBeforeKeyword(words, ["район"]);
     if (district) {
@@ -121,8 +125,6 @@ export function targetMessage(rawText, sourceId) {
         });
 
         targets.push(target);
-
-        targets.push(target.save());
     }
 
 

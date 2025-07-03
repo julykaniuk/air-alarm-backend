@@ -49,6 +49,9 @@ export async function startTelegramService(broadcast) {
         const alertParsed = await alertMessage(rawText, sourceId);
         const targetParsed = targetMessage(rawText, sourceId);
 
+        Promise.all(targetParsed.map(t => t.save()))
+            .then(() => console.log("Targets saved"))
+            .catch(err => console.error("Save error", err));
         console.log("Результат парсингу цілей:", targetParsed);
         console.log("Результат парсингу тривог:", alertParsed);
 
