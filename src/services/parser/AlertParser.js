@@ -11,27 +11,36 @@ const alertSounds = {
 };
 
 function normalizeLocation(location) {
-  return location.toLowerCase().replace(/[.,\-!]+/g, "").replace(/\s+/g, " ").trim();
-}export async function alertMessage(rawText, sourceId) {
-  const lines = rawText.split("\n").map(line => line.trim());
+  return location.toLowerCase()
+      .replace(/[.,\-!]+/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+}
+
+function removeLeadingEmoji(text) {
+  return text.replace(/^[^\p{L}\d\s:]+/u, "").trim();
+}
+
+export async function alertMessage(rawText, sourceId) {
+  const lines = rawText.split("\n").map(line => removeLeadingEmoji(line.trim()));
   const now = new Date();
   const alerts = [];
+
+  const matchers = [
+    { regex: /^(?:Нове повідомлення:)?\s*(.+?)\s*-\s*повітряна тривога!?$/i, type: "повітряна", status: "alarm_started" },
+    { regex: /^(?:Нове повідомлення:)?\s*(.+?)\s*-\s*відбій повітряної тривоги!?$/i, type: "повітряна", status: "alarm_cleared" },
+    { regex: /^(?:Нове повідомлення:)?\s*(.+?)\s*-\s*хімічна тривога!?$/i, type: "хімічна", status: "alarm_started" },
+    { regex: /^(?:Нове повідомлення:)?\s*(.+?)\s*-\s*відбій хімічної тривоги!?$/i, type: "хімічна", status: "alarm_cleared" },
+    { regex: /^(?:Нове повідомлення:)?\s*(.+?)\s*-\s*радіаційна тривога!?$/i, type: "радіаційна", status: "alarm_started" },
+    { regex: /^(?:Нове повідомлення:)?\s*(.+?)\s*-\s*відбій радіаційної тривоги!?$/i, type: "радіаційна", status: "alarm_cleared" },
+  ];
 
   for (const line of lines) {
     if (/^Зверніть увагу/i.test(line)) continue;
 
-    const matchers = [
-      { regex: /🔴\s*(.+?)\s*-\s*повітряна тривога!?/i, type: "повітряна", status: "alarm_started" },
-      { regex: /🟡\s*(.+?)\s*-\s*відбій повітряної тривоги!?/i, type: "повітряна", status: "alarm_cleared" },
-      { regex: /🔴\s*(.+?)\s*-\s*хімічна тривога!?/i, type: "хімічна", status: "alarm_started" },
-      { regex: /🟡\s*(.+?)\s*-\s*відбій хімічної тривоги!?/i, type: "хімічна", status: "alarm_cleared" },
-      { regex: /🔴\s*(.+?)\s*-\s*радіаційна тривога!?/i, type: "радіаційна", status: "alarm_started" },
-      { regex: /🟡\s*(.+?)\s*-\s*відбій радіаційної тривоги!?/i, type: "радіаційна", status: "alarm_cleared" },
-    ];
-
     for (const { regex, type, status } of matchers) {
       const match = line.match(regex);
-      if (match) {
+      if (match && match[1]) {
         const rawLocation = match[1].trim();
         const location = normalizeLocation(rawLocation);
         const alertObject = {

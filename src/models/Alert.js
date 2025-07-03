@@ -25,7 +25,6 @@ import mongoose from 'mongoose';
 
     async save() {
         if (this.id) {
-            // Оновлення існуючого
             const updatedDoc = await AlertEventModel.findByIdAndUpdate(
                 this.id,
                 {
