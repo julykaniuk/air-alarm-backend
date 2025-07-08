@@ -10,17 +10,9 @@ const alertSounds = {
   "відбій-радіаційної": "radiation_alert_sound",
 };
 
-function normalizeLocation(location) {
-  return location.toLowerCase()
-      .replace(/[.,\-!]+/g, "")
-      .replace(/\s+/g, " ")
-      .trim();
-}
-
 function removeLeadingEmoji(text) {
   return text.replace(/^[^\p{L}\d\s:]+/u, "").trim();
 }
-
 export async function alertMessage(rawText, sourceId) {
   const lines = rawText.split("\n").map(line => removeLeadingEmoji(line.trim()));
   const now = new Date();
@@ -42,12 +34,12 @@ export async function alertMessage(rawText, sourceId) {
       const match = line.match(regex);
       if (match && match[1]) {
         const rawLocation = match[1].trim();
-        const location = normalizeLocation(rawLocation);
+
         const alertObject = {
           id: uuidv4(),
           type: status,
           payload: {
-            location,
+            location: rawLocation,
             text: line,
             detectedAt: now.toISOString(),
             sourceId,
@@ -59,31 +51,31 @@ export async function alertMessage(rawText, sourceId) {
         alerts.push(alertObject);
 
         if (status === "alarm_started") {
-          const existingAlert = await Alert.findActive(location, type);
+          const existingAlert = await Alert.findActive(rawLocation, type);
           if (!existingAlert) {
             const newAlert = new Alert({
               type,
-              location,
+              location: rawLocation,
               startedAt: now,
               rawText: line,
               sourceId,
               status: "active",
             });
             await newAlert.save();
-            console.log(`Збережено нову тривогу: ${type}, ${location}`);
+            console.log(`Збережено нову тривогу: ${type}, ${rawLocation}`);
           } else {
-            console.log(`Тривога вже активна: ${type}, ${location}`);
+            console.log(`Тривога вже активна: ${type}, ${rawLocation}`);
           }
         } else if (status === "alarm_cleared") {
-          const existingAlert = await Alert.findActive(location, type);
+          const existingAlert = await Alert.findActive(rawLocation, type);
           if (existingAlert) {
             existingAlert.clearedAt = now;
             existingAlert.rawText = line;
             existingAlert.status = "cleared";
             await existingAlert.save();
-            console.log(`Відбій тривоги: ${type}, ${location}`);
+            console.log(`Відбій тривоги: ${type}, ${rawLocation}`);
           } else {
-            console.log(`Немає активної тривоги: ${type}, ${location}`);
+            console.log(`Немає активної тривоги: ${type}, ${rawLocation}`);
           }
         }
 
