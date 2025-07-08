@@ -101,6 +101,6 @@ export async function startTelegramService(broadcast) {
           console.log("Тривоги не розпізнано");
         }
       },
-      new NewMessage({ chats: ["@trevoga_kharkov", "@test_backend_test"] })
+      new NewMessage({ chats: ["@trevoga_kharkov","@test_backend_test","@xarkiv_radar_trivoga"] })
     );
   }
