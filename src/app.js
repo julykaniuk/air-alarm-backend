@@ -1,7 +1,7 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import {getAllActiveAlerts, getAllAlerts} from './controllers/alertController.js';
+import {getActiveTargetsByRegion, getAllActiveAlerts, getAllAlerts} from './controllers/alertController.js';
 import { getAllTargets } from './controllers/targetController.js';
 import cors from 'cors';
 
@@ -21,6 +21,7 @@ mongoose.connect(process.env.MONGODB_URI)
 
 app.get('/alerts', getAllAlerts);
 app.get('/activeAlerts', getAllActiveAlerts);
-app.get('/terget', getAllTargets);
+app.get('/target', getAllTargets);
+app.get("/threatsActive", getActiveTargetsByRegion);
 
 export default app;
